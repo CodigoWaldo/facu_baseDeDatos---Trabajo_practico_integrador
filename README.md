@@ -1,2 +1,2 @@
-# facu_baseDeDatos-Trabajo_pr-ctico_integrador
+# Trabajo práctico integrador en postgreSQL
 Consultas con SQL / Procedimientos almacenados / triggers / estructura de compras / gestión de stock
