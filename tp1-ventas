@@ -1,0 +1,49 @@
+---------- TP1 ----------
+--*--*--*--*--*--*--*--*--
+
+-----ESQUEMA VENTA-----
+-------------------------
+
+-----Consulta de facturas con sus detalles
+
+create or replace function public.generar_reporte_facturas(fecha_inicio date, fecha_fin date)
+
+returns table(
+	id bigint,
+	fecha date,
+	producto varchar(100),
+	cliente varchar(100),
+	empleado varchar(100),
+	promocion varchar(100),
+	forma_pago varchar(100)
+) as $$
+
+begin
+	return query
+	
+	select 
+		f.id as id,
+		f.fecha as fecha,
+		p.producto as producto,
+		c.cliente as cliente,
+		e.empleado as empleado,
+		pr.promocion as promocion,
+		fp.forma_pago as forma_pago
+		
+	from venta.factura f
+	
+	join venta.detalle_factura df on f.id = df.id_factura --unión entre factura y detalle_factura
+	join producto.producto p on p.id = df.id_producto --unión entre detalle_factura y producto
+	join persona.cliente c on c.id = f.id_cliente --unión entre factura y cliente
+	join persona.empleado e on e.id = f.id_empleado --unión entre factura y empleado
+	join venta.promocion pr on pr.id = f.id_promocion --unión entre factura y promocion
+	join venta.forma_pago fp on fp.id = f.id_forma_pago --unión entre factura y forma_pago
+	--hasta acá se unió a factura con todas las tablas del esquema venta
+	
+	where f.fecha between fecha_inicio and fecha_fin
+	order by f.fecha;
+end;
+$$ language plpgsql;
+
+select *
+from public.generar_reporte_Facturas('2021-01-01', '2021-12-31');
