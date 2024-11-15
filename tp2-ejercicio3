@@ -1,0 +1,40 @@
+
+---------- TP2 ----------
+--*--*--*--*--*--*--*--*--
+
+-----ESQUEMA COMPRA-----
+-------------------------
+
+
+create schema compra;
+create sequence compra.compra_sequence start 1 increment by 1;
+
+create table compra.factura_compra(
+	id bigint not null,
+	version integer not null,
+	id_proveedor bigint not null,
+	numero integer not null,
+	fecha date not null,
+	descuento numeric(38,2),
+	total numeric(38,2),
+	
+	constraint pk_facturaCompra primary key (id),
+	constraint fk_facturaCompra_proveedor foreign key (id_proveedor) references persona.proveedor(id),
+	constraint uk_facturaCompra unique(id_proveedor, numero)
+);
+
+create table compra.factura_compra_detalle(
+	id bigint not null,
+	version integer not null,
+	id_factura bigint not null,
+	item_fact_compra integer not null,
+	cantidad_compra numeric(38,2),
+	precio_compra numeric(38,2),
+	id_producto bigint not null,
+	
+	constraint pk_facturaCompraDetalle primary key(id),
+	constraint fk1_facturaCompraDetalle_producto foreign key (id_producto) references producto.producto(id),
+	constraint fk2_facturaCompraDetalle_producto foreign key (id_producto) references producto.producto(id),
+	constraint uk_facturaCompraDetalle unique(id_factura, item_fact_compra)	
+);
+
