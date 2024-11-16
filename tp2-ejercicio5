@@ -1,0 +1,39 @@
+
+---------- TP2 ----------
+--*--*--*--*--*--*--*--*--
+
+-----ESQUEMA VENTA/COMPRA-----
+-------------------------
+
+create or replace function public.calcular_stock_disponible(id_p bigint, fecha_p date)
+	returns numeric as $$
+	declare 
+		stock_compras numeric := 0;
+		stock_ventas numeric := 0;
+	
+	begin
+		--sumar todas las compras
+		select coalesce (sum(cantidad_compra), 0)
+		into stock_compras
+		from compra.factura_compra_detalle fcd 
+		join compra.factura_compra fc on fcd.id_factura = fc.id --???
+		where fcd.id_producto = id_p --busco el producto asociado al id en el detalle de compra
+		and fc.fecha <= fecha_p;
+		
+		--sumar todas las ventas
+		select coalesce (sum(cantidad), 0)
+		into stock_ventas
+		from venta.factura_detalle fd 
+		join venta.factura f on fd.id_factura = f.id 
+		where fd.id_producto = id_p --busco el producto asociado al id en el detalle de venta
+		and f.fecha <= fecha_p;
+		
+		return stock_compras - stock_ventas;
+
+	end;
+$$ language plpgsql;
+
+
+select *
+from public.calcular_stock_disponible(85, '31-12-2022') as stock; 
+
