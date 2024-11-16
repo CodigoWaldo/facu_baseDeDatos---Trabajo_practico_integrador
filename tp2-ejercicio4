@@ -1,0 +1,41 @@
+
+---------- TP2 ----------
+--*--*--*--*--*--*--*--*--
+
+-----ESQUEMA VENTA-----
+-------------------------
+
+create or replace function actualizar_total_factura_()
+returns trigger as $$
+begin 
+	update venta.factura --actualizo venta 
+	set total = (
+		select coalesce(sum(cantidad*precio_unitario), 0)
+		from venta.factura_detalle --en relacion al detalle 
+		where id_factura = coalesce(new.id_factura, old.id_factura)
+	)
+	where id =coalesce(new.id_factura, old.id_factura); --solo modifico la factura afectada 
+	return null;
+end;
+$$ language plpgsql;
+
+
+create trigger trigger_actualizar_total_factura
+after insert or update or delete 
+on venta.factura_detalle 
+for each row 
+execute function actualizar_total_factura();
+
+--Insertar detalle
+insert into factura_detalle (id, version, id_factura, item, cantidad, precio_unitario, id_producto)
+values (49, 0, 27, 2, 10, 150, 100);
+
+--Actualizar detalle
+update factura_detalle 
+set cantidad = 5
+where id = 49;
+
+--Eliminar detalle
+delete from factura_detalle 
+where id=49;
+
