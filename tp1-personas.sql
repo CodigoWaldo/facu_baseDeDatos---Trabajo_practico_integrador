@@ -6,72 +6,72 @@
 
 ----- Sucursales con información de empleados
 
-select
-	s.descripcion as nombre_sucursal,
-	l.descripcion as nombre_localidad,
-	p.descripcion as nombre_provincia,
-	pf.apellido as apellido_empleado,
-	pf.nombre as nombre_empleado
-from sucursal s 
-join localidad l on l.id = s.id_localidad --unión entre sucursal y localidad
-join provincia p on p.id = l.id_provincia --unión entre localidad y provincia
-join empleado e on s.id = e.id_sucursal --unión entre empleado y sucursal
-join persona_fisica pf on pf.id = e.id_persona_fisica --unión entre empleado y persona física
-order by nombre_provincia, nombre_localidad, nombre_sucursal, apellido_empleado, nombre_empleado;
+SELECT
+    s.descripcion AS nombre_sucursal,
+    l.descripcion AS nombre_localidad,
+    p.descripcion AS nombre_provincia,
+    pf.apellido AS apellido_empleado,
+    pf.nombre AS nombre_empleado
+FROM sucursal s
+JOIN localidad l ON l.id = s.id_localidad -- Unión entre sucursal y localidad
+JOIN provincia p ON p.id = l.id_provincia -- Unión entre localidad y provincia
+JOIN empleado e ON s.id = e.id_sucursal -- Unión entre empleado y sucursal
+JOIN persona_fisica pf ON pf.id = e.id_persona_fisica -- Unión entre empleado y persona física
+ORDER BY 
+    nombre_provincia, 
+    nombre_localidad, 
+    nombre_sucursal, 
+    apellido_empleado, 
+    nombre_empleado;
 
 
 ----- Clientes con información de datos personales
 
-select p.tipo,
-case
-	when p.tipo = 'FISICA' then pf.apellido || ' ' || pf.nombre
-	when p.tipo = 'JURIDICA' then pj.denominacion
-end as denominacion,
-case
-	when p.tipo = 'FISICA' then pf.cuil
-	when p.tipo = 'JURIDICA' then pj.cuit
-end as identificacion,
-l.descripcion as nombre_localidad,
-p2.descripcion as nombre_provincia
-from persona.cliente c 
-join 
-	persona.persona p on p.id = c.id_persona -- unión entre cliente y persona
-left join 
-	persona.persona_fisica pf on p.id = pf.id_persona and p.tipo = 'FISICA' -- unión entre persona y persona física (si existe)
-left join 
-	persona.persona_juridica pj on p.id = pj.id_persona and p.tipo = 'JURIDICA' -- unión entre persona y persona jurídica (si existe)
-left join 
-	persona.localidad l on l.id = p.id_localidad -- unión entre persona y localidad
-left join
-	persona.provincia p2 on p2.id = l.id_provincia -- unión entre localidad y provincia 
-order by denominacion;
+SELECT 
+    p.tipo,
+    CASE
+        WHEN p.tipo = 'FISICA' THEN pf.apellido || ' ' || pf.nombre
+        WHEN p.tipo = 'JURIDICA' THEN pj.denominacion
+    END AS denominacion,
+    CASE
+        WHEN p.tipo = 'FISICA' THEN pf.cuil
+        WHEN p.tipo = 'JURIDICA' THEN pj.cuit
+    END AS identificacion,
+    l.descripcion AS nombre_localidad,
+    p2.descripcion AS nombre_provincia
+FROM persona.cliente c
+JOIN persona.persona p ON p.id = c.id_persona -- Unión entre cliente y persona
+LEFT JOIN persona.persona_fisica pf ON p.id = pf.id_persona AND p.tipo = 'FISICA' -- Unión entre persona y persona física (si existe)
+LEFT JOIN persona.persona_juridica pj ON p.id = pj.id_persona AND p.tipo = 'JURIDICA' -- Unión entre persona y persona jurídica (si existe)
+LEFT JOIN persona.localidad l ON l.id = p.id_localidad -- Unión entre persona y localidad
+LEFT JOIN persona.provincia p2 ON p2.id = l.id_provincia -- Unión entre localidad y provincia
+ORDER BY denominacion;
 
 
 ----- Personas con múltiples roles
-select 
-    case
-        when p.tipo = 'FISICA' then pf.apellido || ' ' || pf.nombre
-        when p.tipo = 'JURIDICA' then pj.denominacion
-    end as denominacion,
+SELECT 
+    CASE
+        WHEN p.tipo = 'FISICA' THEN pf.apellido || ' ' || pf.nombre
+        WHEN p.tipo = 'JURIDICA' THEN pj.denominacion
+    END AS denominacion,
+    CASE
+        WHEN e.id_persona_fisica IS NOT NULL THEN 'EMPLEADO'
+        WHEN pr.id_persona_juridica IS NOT NULL THEN 'PROVEEDOR'
+        WHEN c.id_persona IS NOT NULL THEN 'CLIENTE'
+    END AS rol_persona
+FROM persona p
+LEFT JOIN persona_fisica pf ON p.id = pf.id_persona AND p.tipo = 'FISICA' -- Unión entre persona y persona física
+LEFT JOIN empleado e ON pf.id = e.id_persona_fisica -- Unión entre persona física y empleado
+LEFT JOIN persona_juridica pj ON p.id = pj.id_persona AND p.tipo = 'JURIDICA' -- Unión entre persona y persona jurídica
+LEFT JOIN proveedor pr ON pj.id_persona = pr.id_persona_juridica -- Unión entre persona jurídica y proveedor
+LEFT JOIN cliente c ON p.id = c.id_persona -- Unión entre persona y cliente
+WHERE 
+    ((e.id_persona_fisica IS NOT NULL)::INT + 
+     (pr.id_persona_juridica IS NOT NULL)::INT + 
+     (c.id_persona IS NOT NULL)::INT) > 1 -- Al menos dos roles
+ORDER BY denominacion;
 
-    case
-        when e.id_persona_fisica is not null then 'EMPLEADO'
-        when pr.id_persona_juridica is not null then 'PROVEEDOR'
-         when c.id_persona is not null then 'CLIENTE'
-    end as rol_persona
 
-from persona p 
 
-left join persona_fisica pf on p.id = pf.id_persona and p.tipo = 'FISICA' -- unión entre persona y persona física
-left join empleado e on pf.id = e.id_persona_fisica -- unión entre persona física y empleado
 
-left join persona_juridica pj on p.id = pj.id_persona and p.tipo = 'JURIDICA' -- unión entre persona y persona jurídica
-left join proveedor pr on pj.id_persona = pr.id_persona_juridica -- unión entre persona jurídica y proveedor
 
-left join cliente c on p.id = c.id_persona -- unión entre persona y cliente
-
-where 
-    ((e.id_persona_fisica is not null)::int + 
-     (pr.id_persona_juridica is not null)::int + 
-     (c.id_persona is not null)::int) > 1 -- al menos dos roles
-order by denominacion;
