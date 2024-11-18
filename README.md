@@ -4,7 +4,8 @@ Consultas con SQL / Procedimientos almacenados / triggers / estructura de compra
 Integrantes:
 - [Franco Hergenreder](https://github.com/francoherg)
 - [Giuliana Cagnola](https://github.com/GiuliCagnola)
-- Yo
+- [Walter Voegeli](https://github.com/CodigoWaldo)
+
 
 ```
 Language: SQL
